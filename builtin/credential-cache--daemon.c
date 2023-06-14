@@ -38,7 +38,7 @@ static struct credential_cache_entry *lookup_credential(const struct credential 
 	int i;
 	for (i = 0; i < entries_nr; i++) {
 		struct credential *e = &entries[i].item;
-		if (credential_match(c, e))
+		if (credential_match(c, e, 0))
 			return &entries[i];
 	}
 	return NULL;
@@ -48,9 +48,12 @@ static void remove_credential(const struct credential *c)
 {
 	struct credential_cache_entry *e;
 
-	e = lookup_credential(c);
-	if (e)
-		e->expiration = 0;
+	int i;
+	for (i = 0; i < entries_nr; i++) {
+		e = &entries[i];
+		if (credential_match(c, &e->item, c->password != NULL))
+			e->expiration = 0;
+	}
 }
 
 static timestamp_t check_expirations(void)
